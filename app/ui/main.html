@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>RDM</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="main">
+    <div class="toolbar">
+      <button id="add"><span class="glyph">＋</span>Add URL</button>
+      <button id="resume"><span class="glyph">▶</span>Resume</button>
+      <button id="stop"><span class="glyph">■</span>Stop</button>
+      <button id="stopall"><span class="glyph">⏹</span>Stop All</button>
+      <button id="delete"><span class="glyph">✕</span>Delete</button>
+      <span class="sep"></span>
+      <button id="options"><span class="glyph">⚙</span>Options</button>
+      <button id="startq"><span class="glyph">⏵</span>Start Queue</button>
+      <button id="stopq"><span class="glyph">⏸</span>Stop Queue</button>
+    </div>
+    <div id="addbar" class="addbar" hidden>
+      <label for="newurl">Address</label>
+      <input id="newurl" spellcheck="false" placeholder="https://" />
+      <button id="addok" class="default">OK</button>
+      <button id="addcancel">Cancel</button>
+    </div>
+    <div class="workspace">
+      <nav id="tree" class="tree"></nav>
+      <div class="listbox">
+        <table id="downloads" class="list">
+          <colgroup id="cols"></colgroup>
+          <thead>
+            <tr id="heads"></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="rowmenu" class="rowmenu" hidden>
+      <div id="menuopen" class="item">Open</div>
+      <div id="menufolder" class="item">Open the containing folder</div>
+      <div class="separator"></div>
+      <div id="menuresume" class="item">Resume</div>
+      <div id="menustop" class="item">Stop</div>
+      <div class="separator"></div>
+      <div id="menucopy" class="item">Copy address</div>
+      <div id="menudelete" class="item">Delete…</div>
+      <div class="separator"></div>
+      <div id="menuprops" class="item">Properties</div>
+    </div>
+    <div class="statusbar"><span id="summary"></span><span id="message" class="error"></span></div>
+    <script src="common.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>

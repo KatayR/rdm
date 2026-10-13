@@ -1,0 +1,24 @@
+{
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "resources": {
+      "../target/release/rdm.exe": "rdm.exe",
+      "../target/release/rdm-host.exe": "rdm-host.exe",
+      "../target/ffmpeg-min/work/ffmpeg-win64/ffmpeg.exe": "ffmpeg.exe",
+      "../LICENSE": "licenses/RDM.txt",
+      "../target/licenses/libraries.html": "licenses/libraries.html",
+      "../ffmpeg/NOTICE.txt": "licenses/ffmpeg.txt",
+      "../ffmpeg/COPYING.LGPLv2.1": "licenses/ffmpeg-LGPL-2.1.txt"
+    },
+    "windows": {
+      "allowDowngrades": false,
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "installer/hooks.nsh"
+      }
+    }
+  }
+}

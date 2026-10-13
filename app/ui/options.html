@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>RDM Options</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="dialog">
+    <div class="tabs">
+      <button class="tab selected" data-page="general">General</button>
+      <button class="tab" data-page="connection">Connection</button>
+      <button class="tab" data-page="saveto">Save To</button>
+      <button class="tab" data-page="queues">Queues</button>
+      <button class="tab" data-page="tools">Tools</button>
+      <button class="tab" data-page="about">About</button>
+    </div>
+
+    <section id="general" class="page">
+      <label class="check"><input type="checkbox" id="ask" /> Show the Download File Info window for new downloads</label>
+      <label class="check"><input type="checkbox" id="progress" /> Show the download progress window</label>
+      <label class="check"><input type="checkbox" id="complete" /> Show the download complete window</label>
+      <div class="group">
+        <div>File types the browser keeps (everything else goes to RDM)</div>
+        <input id="exclude" spellcheck="false" placeholder="for example: torrent html" />
+        <div class="muted">Extensions separated by spaces, without dots. Alt+click any link to let the browser keep that one download.</div>
+      </div>
+    </section>
+
+    <section id="connection" class="page" hidden>
+      <div class="row">
+        <label for="connections">Connections</label>
+        <input id="connections" type="number" min="1" max="32" />
+      </div>
+      <div class="muted">Per download, 1 to 32. Servers that refuse extra connections get fewer automatically.</div>
+      <div class="group">
+        <label class="check"><input type="checkbox" id="limit" /> Limit the total download speed</label>
+        <div class="row">
+          <label for="rate">Maximum</label>
+          <span class="inline"><input id="rate" type="number" min="0.1" step="0.1" /> MB/sec</span>
+        </div>
+        <div class="muted">The tray menu's Speed limiter switches this limit on and off.</div>
+      </div>
+    </section>
+
+    <section id="saveto" class="page" hidden>
+      <div class="muted">Each category's folder. New downloads go to the folder of the category their file type belongs to.</div>
+      <div id="folders"></div>
+    </section>
+
+    <section id="queues" class="page" hidden>
+      <div class="row">
+        <label for="queue">Queue</label>
+        <select id="queue"></select>
+        <button id="newqueue">New queue…</button>
+      </div>
+      <div class="row"><label for="qname">Name</label><input id="qname" /></div>
+      <div class="row">
+        <label for="parallel">Files at once</label>
+        <input id="parallel" type="number" min="1" max="32" />
+      </div>
+      <div class="row">
+        <label for="retries">Retries</label>
+        <input id="retries" type="number" min="0" max="100" />
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="startOn" /> Start at</label>
+        <input id="startAt" type="time" />
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="stopOn" /> Stop at</label>
+        <input id="stopAt" type="time" />
+      </div>
+      <div class="row">
+        <label>Days</label>
+        <div id="days" class="days"></div>
+      </div>
+      <div id="newbar" class="row" hidden>
+        <label for="newname">New queue</label>
+        <input id="newname" placeholder="Name" />
+        <button id="newok">Add</button>
+      </div>
+    </section>
+
+    <section id="tools" class="page" hidden>
+      <div class="muted">Programs RDM uses for video downloads, from their official releases (checksums and signatures checked).</div>
+      <table class="kv" id="toollist"></table>
+      <label class="check"><input type="checkbox" id="autoupdate" /> Keep yt-dlp up to date (checked daily)</label>
+      <div class="muted">Sites change often, and an old yt-dlp stops finding their videos.</div>
+      <div class="row">
+        <span></span>
+        <span class="inline"><button id="updatenow">Update now</button> <span id="updatestate" class="muted"></span></span>
+      </div>
+    </section>
+
+    <section id="about" class="page" hidden>
+      <div class="headline">RDM <span id="version"></span></div>
+      <div>Rusty Download Manager</div>
+      <div class="muted">Free software under the MIT licence. It comes with ffmpeg, which is under the LGPL; the licences are in the folder "licenses" of RDM's program folder.</div>
+      <div class="muted copy">https://github.com/KatayR/rdm</div>
+      <label class="check"><input type="checkbox" id="checkupdates" /> Look for a new version of RDM once a day</label>
+      <div class="row">
+        <span></span>
+        <span class="inline"><button id="checknow">Check for updates</button> <span id="checkstate" class="muted"></span></span>
+      </div>
+    </section>
+
+    <div id="error" class="error"></div>
+    <div class="buttons">
+      <span class="grow"></span>
+      <button id="ok" class="default">OK</button>
+      <button id="cancel">Cancel</button>
+    </div>
+    <script src="common.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

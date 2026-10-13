@@ -1,0 +1,19 @@
+ffmpeg.exe in RDM's folder is FFmpeg 9.0.2 (https://ffmpeg.org), built for RDM from the
+unchanged official source. RDM runs it as a separate program, only to copy video and audio
+streams into a file; nothing of FFmpeg is linked into RDM's own programs.
+
+Licence: GNU Lesser General Public License, version 2.1 or later. Its text is next to this
+file (ffmpeg-LGPL-2.1.txt). The build has no GPL and no non-free parts (no --enable-gpl,
+no --enable-nonfree).
+
+Source: ffmpeg-9.0.2.tar.xz, as published at https://ffmpeg.org/releases/ . The same file
+is attached to every release of RDM, beside the setup:
+https://github.com/KatayR/rdm/releases
+
+How it was built (the exact configure flags and why each part is there, the compiler, the
+checks of the downloads): the folder "ffmpeg" of RDM's source, at the tag of this version
+of RDM (https://github.com/KatayR/rdm). The flags are also printed by:  ffmpeg.exe -version
+
+To use another build of FFmpeg, replace ffmpeg.exe in RDM's folder with it. What RDM needs
+of it is listed in ffmpeg/build_ffmpeg.sh and ffmpeg/README.md of the source; a build that
+lacks a part can write files that do not play.

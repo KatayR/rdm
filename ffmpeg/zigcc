@@ -1,0 +1,14 @@
+#!/bin/bash
+# zig cc with the GNU ld flag zig's linker does not know dropped. ffmpeg's configure adds
+# -Wl,--pic-executable,-e,mainCRTStartup for mingw; lld makes relocatable images with
+# --dynamicbase anyway, and the entry point is the default one.
+a=()
+for x in "$@"; do
+    case $x in
+        -Wl,--pic-executable,-e,mainCRTStartup) ;;
+        # macOS: ld64 defaults (dynamic output, search_paths_first) that zig's linker rejects.
+        -Wl,-dynamic,-search_paths_first) ;;
+        *) a+=("$x") ;;
+    esac
+done
+exec zig cc "${a[@]}"

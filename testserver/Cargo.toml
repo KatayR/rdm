@@ -1,0 +1,16 @@
+[package]
+name = "testserver"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+aes = "0.8.4"
+axum = "0.8.9"
+bytes = "1.12.1"
+cbc = { version = "0.1.2", features = ["alloc"] }
+futures-util = "0.3.34"
+serde = { version = "1.0.229", features = ["derive"] }
+tempfile = "3.27.0"
+tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "time", "net"] }

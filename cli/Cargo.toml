@@ -1,0 +1,41 @@
+[package]
+name = "rdm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+clap = { version = "4.6.7", features = ["derive"] }
+engine = { path = "../engine" }
+manager = { path = "../manager" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "signal", "time", "sync"] }
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_Console"] }
+winreg = "0.56.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+dirs = "7.0.0"
+
+[lib]
+name = "rdm"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rdm"
+path = "src/main.rs"
+
+[[bin]]
+name = "rdm-host"
+path = "src/bin/host.rs"
+
+[build-dependencies]
+static_vcruntime = "3.0.0"
+
+[dev-dependencies]
+base64 = "0.23.1"
+sha2 = "0.11.0"
+testserver = { path = "../testserver" }

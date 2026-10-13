@@ -1,0 +1,17 @@
+{
+  "identifier": "default",
+  "description": "What every RDM window may call besides the app's own commands",
+  "windows": [
+    "*"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-close",
+    "core:window:allow-destroy",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-title",
+    "core:window:allow-set-size",
+    "core:window:allow-show",
+    "core:window:allow-center"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "RDM",
+  "version": "0.3.0",
+  "description": "Sends downloads and videos to RDM. Alt+click a link to download it with the browser instead.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwVvlTMaUhN2m8bbkgJgnIM+0ElqglvDzywJ06/OFGvCwK7VSnCI0lIMjv7nexBgaw9SE5YaHq/mLbF8DRpFB/H86fo6msxhhqo8TrPgmTkCEk4KPhXtZ8UJLeGhj7EE27sgImx/2ZfIG9opwtmR9lqOo37PSqjjo/WOa9Bf+yyPtslcv6IEu54NUnAoP7m8qK+yPYPZSgJVTfoN0+QmNMkefu7yADetn+VuXcXJ3fW2SEVeoi4jndiLT4REQ6+e6B95VFWhBBTBEoLJz3CIq7ZU2Suvg6qd7sHCVqnUJnAKe9n9uAbJtL4bV3EozqeSCu/HFMiHA4AMDkgb/62FkEwIDAQAB",
+  "permissions": [
+    "downloads",
+    "nativeMessaging",
+    "cookies",
+    "contextMenus",
+    "storage",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "types.js",
+        "content.js",
+        "video.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_origin_as_fallback": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "sniff.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_origin_as_fallback": true
+    }
+  ],
+  "action": {
+    "default_title": "RDM: capturing downloads (click to turn off)"
+  }
+}

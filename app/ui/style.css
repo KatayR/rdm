@@ -1,0 +1,194 @@
+/* Classic Windows dialog look, as IDM's windows. */
+:root {
+  --face: #f0f0f0;
+  --text: #1a1a1a;
+  --muted: #5f5f5f;
+  --line: #adadad;
+  --field: #ffffff;
+  --accent: #2f78d6;
+  --accent-soft: #cce4f7;
+  --bar-back: #e6e6e6;
+  --error: #b3261e;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --face: #2b2b2b;
+    --text: #ececec;
+    --muted: #a8a8a8;
+    --line: #5a5a5a;
+    --field: #1e1e1e;
+    --accent: #4c9be8;
+    --accent-soft: #23435f;
+    --bar-back: #3a3a3a;
+    --error: #f2b8b5;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+/* Layout rules below set display, which would otherwise beat the hidden attribute. */
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--face);
+  color: var(--text);
+  font: 12px "Segoe UI", system-ui, -apple-system, sans-serif;
+  user-select: none;
+  cursor: default;
+}
+body.dialog { padding: 14px 16px; display: flex; flex-direction: column; gap: 9px; }
+/* A dialog that sizes its window to its content (progress): buttons right after it. */
+body.fit { height: auto; }
+input, select, button { font: inherit; color: inherit; }
+input, select {
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 4px 6px;
+  min-width: 0;
+}
+input:focus, select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+input[readonly] { background: var(--face); }
+input[type="checkbox"] { padding: 0; }
+button {
+  min-width: 86px;
+  height: 26px;
+  padding: 0 12px;
+  background: linear-gradient(var(--field), var(--face));
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+button:hover { border-color: var(--accent); }
+button:active { background: var(--accent-soft); }
+button.default { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+button.small { min-width: 30px; padding: 0 6px; }
+button:disabled { opacity: 0.5; }
+.row { display: grid; grid-template-columns: 84px 1fr auto; gap: 8px; align-items: center; }
+/* A field with nothing after it takes the button column too. */
+.row > input:last-child, .row > select:last-child { grid-column: 2 / 4; }
+.buttons { display: flex; gap: 8px; align-items: center; margin-top: auto; }
+.grow { flex: 1; }
+.muted { color: var(--muted); }
+.error { color: var(--error); min-height: 16px; user-select: text; }
+.headline { font-size: 15px; font-weight: 600; }
+.copy { user-select: text; }
+.notes { white-space: pre-wrap; max-height: 180px; overflow-y: auto; user-select: text; }
+.name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lines > div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
+table.kv { border-collapse: collapse; width: 100%; table-layout: fixed; }
+table.kv th { width: 132px; text-align: left; font-weight: normal; color: var(--muted); padding: 2px 0; vertical-align: top; }
+table.kv td { padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
+/* A label beside a field. */
+table.kv th.middle { vertical-align: middle; }
+/* A long value shown whole (a hash). */
+table.kv td.wrap { white-space: normal; overflow-wrap: anywhere; }
+/* A field alone in a table cell takes the cell's width. */
+table.kv td > input { width: 100%; box-sizing: border-box; }
+/* An input with its button on one line, in a table cell. */
+.field-button { display: flex; gap: 6px; }
+.field-button input { flex: 1; min-width: 0; }
+.bar { height: 16px; background: var(--bar-back); border: 1px solid var(--line); }
+.bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.4s; }
+canvas.segments { width: 100%; height: 12px; border: 1px solid var(--line); display: block; }
+label.check { display: flex; gap: 6px; align-items: center; }
+
+/* Main window */
+body.main { display: flex; flex-direction: column; }
+.toolbar { display: flex; gap: 2px; padding: 4px 6px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.toolbar button {
+  min-width: 64px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: 1px solid transparent;
+}
+.toolbar button:hover { border-color: var(--line); background: var(--field); }
+.toolbar .glyph { font-size: 18px; line-height: 20px; color: var(--accent); }
+.toolbar .sep { width: 1px; background: var(--line); margin: 4px 6px; }
+.addbar { display: flex; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); align-items: center; }
+.addbar input { flex: 1; }
+.workspace { flex: 1; display: flex; min-height: 0; }
+/* A line that needs the person's attention, with its choices (Download File Info). */
+.notice { display: flex; gap: 8px; align-items: center; padding: 6px 8px; border: 1px solid var(--accent); background: var(--accent-soft); }
+
+/* Right-click menu of the download list. */
+.rowmenu {
+  position: fixed;
+  z-index: 10;
+  min-width: 180px;
+  padding: 3px 0;
+  background: var(--field);
+  border: 1px solid var(--line);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
+}
+.rowmenu .item { padding: 4px 22px; white-space: nowrap; }
+.rowmenu .item:hover { background: var(--accent); color: #fff; }
+.rowmenu .item.disabled { color: var(--muted); pointer-events: none; }
+.rowmenu .separator { height: 1px; margin: 3px 0; background: var(--line); }
+nav.tree { width: 170px; border-right: 1px solid var(--line); overflow: auto; padding: 6px 0; background: var(--field); }
+nav.tree div { padding: 3px 10px; white-space: nowrap; }
+nav.tree div.child { padding-left: 26px; }
+nav.tree div.head { color: var(--muted); padding-top: 8px; }
+nav.tree div.selectable:hover { background: var(--accent-soft); }
+nav.tree div.selected { background: var(--accent); color: #fff; }
+.listbox { flex: 1; overflow: auto; background: var(--field); }
+table.list { border-collapse: collapse; width: 100%; table-layout: fixed; }
+table.list th {
+  position: sticky; top: 0; background: var(--face); font-weight: normal; text-align: left;
+  border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 3px 6px;
+}
+table.list td { padding: 3px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+table.list tr.selected td { background: var(--accent); color: #fff; }
+table.list td.num { text-align: right; }
+/* The download list: columns of set widths (scrolling sideways when wider than the
+   window), sorted by a click on a header, resized by dragging its right edge. */
+#downloads { width: auto; }
+#downloads th { cursor: default; user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#downloads th:hover { background: var(--field); }
+#downloads th .arrow { color: var(--muted); margin-left: 4px; font-size: 10px; }
+#downloads th .grip { position: absolute; top: 0; right: -1px; width: 7px; height: 100%; cursor: col-resize; }
+.statusbar { border-top: 1px solid var(--line); padding: 3px 8px; color: var(--muted); display: flex; gap: 16px; }
+
+/* Options */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); }
+.tabs .tab { min-width: 0; border-radius: 3px 3px 0 0; border-bottom: none; background: var(--face); }
+.tabs .tab.selected { background: var(--field); border-color: var(--accent); }
+.page { display: flex; flex-direction: column; gap: 9px; padding-top: 6px; }
+.group { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 9px; }
+.row > .days { grid-column: 2 / 4; display: flex; gap: 10px; flex-wrap: wrap; }
+input[type="number"], input[type="time"] { width: 110px; justify-self: start; }
+.row > .inline { grid-column: 2 / 4; display: flex; gap: 8px; align-items: center; }
+
+/* Download Video */
+.choices { flex: 1; min-height: 150px; border: 1px solid var(--line); }
+.choices table.list tr.choice:hover td { background: var(--accent-soft); }
+.choices table.list tr.choice.selected td { background: var(--accent); color: #fff; }
+.choices label.check { gap: 8px; }
+/* One header per resolution. */
+.choices table.list tr.resolution td {
+  background: var(--face); color: var(--muted); font-weight: 600;
+  padding-top: 6px; border-top: 1px solid var(--line);
+}
+/* Format chips: white text on a color per container, readable in both themes. */
+.chip {
+  display: inline-block; min-width: 40px; padding: 0 5px; border-radius: 3px;
+  font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; color: #fff;
+  background: var(--muted);
+}
+.chip.mp4 { background: #1f6fd1; }
+.chip.webm { background: #2e8540; }
+.chip.mkv { background: #c25e14; }
+.chip.m4a { background: #8545c4; }
+/* How a stream is delivered (HLS / DASH pieces): an outlined chip beside the format. */
+.chip.stream { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--muted); min-width: 34px; }
+/* One header per source: the page (yt-dlp), then each stream the tab played. */
+.choices table.list tr.source td {
+  background: var(--accent-soft); color: var(--text); font-weight: 700;
+  padding-top: 5px; padding-bottom: 5px; border-top: 1px solid var(--line);
+}
+.choices table.list tr.source td .muted { font-weight: 400; margin-left: 6px; }
+.hint { color: var(--muted); font-size: 11px; }

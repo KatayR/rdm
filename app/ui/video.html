@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Download Video</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="dialog">
+    <div id="title" class="headline name">Looking up the video…</div>
+    <div class="row"><label for="url">Page</label><input id="url" readonly /></div>
+    <div class="listbox choices">
+      <table class="list">
+        <colgroup><col /><col style="width: 130px" /><col style="width: 90px" /></colgroup>
+        <thead><tr><th>Quality</th><th>Codecs</th><th>Size</th></tr></thead>
+        <tbody id="choices"></tbody>
+      </table>
+    </div>
+    <div class="row"><label for="category">Category</label><select id="category"></select></div>
+    <div class="row">
+      <label for="path">Save As</label><input id="path" spellcheck="false" />
+      <button id="browse" class="small" title="Choose a folder">…</button>
+    </div>
+    <div class="row"><label for="description">Description</label><input id="description" /></div>
+    <div id="error" class="error"></div>
+    <div id="hint" class="hint"></div>
+    <div class="buttons">
+      <button id="later" disabled>Download Later</button>
+      <select id="queue" title="Queue for Download Later"></select>
+      <span class="grow"></span>
+      <button id="start" class="default" disabled>Start Download</button>
+      <button id="cancel">Cancel</button>
+    </div>
+    <script src="common.js"></script>
+    <script src="video.js"></script>
+  </body>
+</html>

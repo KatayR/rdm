@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Download</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="dialog fit">
+    <div id="name" class="name"></div>
+    <table class="kv">
+      <tr><th>URL</th><td id="url"></td></tr>
+      <tr><th>Status</th><td id="status"></td></tr>
+      <tr><th>File size</th><td id="size"></td></tr>
+      <tr><th>Downloaded</th><td id="done"></td></tr>
+      <tr><th>Transfer rate</th><td id="rate"></td></tr>
+      <tr><th>Time left</th><td id="left"></td></tr>
+      <tr><th>Resume capability</th><td id="resume"></td></tr>
+    </table>
+    <div class="bar"><div id="fill"></div></div>
+    <div id="details" hidden>
+      <canvas id="segments" class="segments"></canvas>
+      <table class="kv" style="margin-top: 6px">
+        <tr><th>Connections</th><td id="connections"></td></tr>
+        <tr><th id="segname">Segments</th><td id="segcount"></td></tr>
+      </table>
+    </div>
+    <div class="buttons">
+      <button id="more">Show details &gt;&gt;</button>
+      <span class="grow"></span>
+      <button id="pause">Pause</button>
+      <button id="cancel">Cancel</button>
+    </div>
+    <script src="common.js"></script>
+    <script src="progress.js"></script>
+  </body>
+</html>

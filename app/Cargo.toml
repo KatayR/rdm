@@ -1,0 +1,24 @@
+[package]
+name = "rdm-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "RDM, the Rusty Download Manager"
+
+[dependencies]
+engine = { path = "../engine" }
+manager = { path = "../manager" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tauri = { version = "2.12.1", features = ["tray-icon"] }
+tauri-plugin-dialog = "2.8.1"
+tauri-plugin-opener = "2.7.0"
+tauri-plugin-updater = "2.13.3"
+tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "sync", "time"] }
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
+
+[build-dependencies]
+tauri-build = { version = "2.7.1", features = [] }

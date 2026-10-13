@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "RDM",
+  "identifier": "io.github.katayr.rdm",
+  "build": { "frontendDist": "./ui" },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYxMjExMjI2NjBFQjdEOEEKUldTS2ZldGdKaEloWVE4TTZvUWpaTlNVS21jZTlsUVV2RkJzNG1WL1VXbldWeUhiT0dDMnFkMk8K",
+      "endpoints": ["https://github.com/KatayR/rdm/releases/latest/download/latest.json"],
+      "requireSignedVersion": true,
+      "windows": { "installMode": "passive" }
+    }
+  },
+  "bundle": {
+    "active": false,
+    "publisher": "KatayR",
+    "icon": ["icons/32x32.png", "icons/icon.png", "icons/icon.ico"]
+  }
+}

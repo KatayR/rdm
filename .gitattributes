@@ -1,0 +1,5 @@
+# Signed test files must keep their exact bytes.
+manager/tests/fixtures/** binary
+# The ffmpeg build scripts run under bash in WSL, which breaks on CRLF.
+ffmpeg/*.sh text eol=lf
+ffmpeg/zigcc text eol=lf

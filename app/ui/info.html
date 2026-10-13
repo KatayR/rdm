@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Download File Info</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="dialog fit">
+    <div id="dupe" class="notice" hidden>
+      <span id="dupetext" class="grow"></span>
+      <button id="dupeshow" class="small">Show it</button>
+      <button id="dupecontinue" class="small">Continue it</button>
+    </div>
+    <div id="same" class="notice" hidden>
+      <span id="sametext" class="grow"></span>
+      <button id="sameuse" class="small">Use this address for it</button>
+    </div>
+    <div class="row"><label for="url">URL</label><input id="url" readonly /></div>
+    <div class="row"><label for="category">Category</label><select id="category"></select></div>
+    <div class="row">
+      <label for="path">Save As</label><input id="path" spellcheck="false" />
+      <button id="browse" class="small" title="Choose a folder">…</button>
+    </div>
+    <div class="row"><label for="description">Description</label><input id="description" /></div>
+    <div class="row">
+      <span></span>
+      <span><span id="size" class="muted">Checking the file…</span> <span id="ranges" class="muted"></span></span>
+    </div>
+    <div id="error" class="error"></div>
+    <div class="buttons">
+      <button id="later">Download Later</button>
+      <select id="queue" title="Queue for Download Later"></select>
+      <span class="grow"></span>
+      <button id="start" class="default">Start Download</button>
+      <button id="cancel">Cancel</button>
+    </div>
+    <script src="common.js"></script>
+    <script src="info.js"></script>
+  </body>
+</html>

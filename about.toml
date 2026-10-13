@@ -1,0 +1,17 @@
+# The licences of the libraries RDM is built from, for the list that ships with it
+# (licenses\libraries.html, made by package.ps1 with cargo-about). A library under a
+# licence that is not listed here stops the packaging: it is then looked at first.
+accepted = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "MIT-0",
+    "0BSD",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "bzip2-1.0.6",
+    "Unicode-3.0",
+    "CDLA-Permissive-2.0",
+    "MPL-2.0",
+]

@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Properties</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="dialog fit">
+    <div id="name" class="headline name"></div>
+    <table class="kv">
+      <tr><th>Address</th><td id="url" class="wrap"></td></tr>
+      <tr><th id="placename">Saved as</th><td id="place" class="wrap"></td></tr>
+      <tr><th>Category</th><td id="category"></td></tr>
+      <tr><th>Size</th><td id="size"></td></tr>
+      <tr><th>Status</th><td id="status" class="wrap"></td></tr>
+      <tr><th>Added</th><td id="added"></td></tr>
+      <tr><th>Last try</th><td id="lasttry"></td></tr>
+      <tr id="checkedrow" hidden><th>Checked</th><td id="checked"></td></tr>
+      <tr id="filerow" hidden><th>File check</th><td id="filecheck" class="wrap"></td></tr>
+      <tr>
+        <th class="middle"><label for="description">Description</label></th>
+        <td><input id="description" /></td>
+      </tr>
+      <tr id="sumfield" hidden>
+        <th class="middle"><label for="sum">Checksum</label></th>
+        <td>
+          <div class="field-button">
+            <input id="sum" spellcheck="false" placeholder="MD5, SHA-1, SHA-256 or SHA-512 from the site" />
+            <button id="check" class="small">Check</button>
+          </div>
+        </td>
+      </tr>
+      <tr id="sumrow" hidden><th></th><td id="sumresult" class="wrap"></td></tr>
+    </table>
+    <div id="error" class="error"></div>
+    <div class="buttons">
+      <button id="folder">Open folder</button>
+      <span class="grow"></span>
+      <button id="ok" class="default">OK</button>
+      <button id="cancel">Cancel</button>
+    </div>
+    <script src="common.js"></script>
+    <script src="properties.js"></script>
+  </body>
+</html>
