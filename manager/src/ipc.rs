@@ -96,12 +96,14 @@ pub fn is_other_version(e: &io::Error) -> bool {
 
 /// FNV-1a, written out: every program must make the same name of the same folder, whatever
 /// compiler built it, and the standard library's hasher promises no such thing.
+#[cfg(any(windows, test))]
 fn fnv1a(bytes: impl IntoIterator<Item = u8>) -> u64 {
     bytes.into_iter().fold(0xcbf2_9ce4_8422_2325, |h, b| (h ^ u64::from(b)).wrapping_mul(0x0000_0100_0000_01b3))
 }
 
 /// A data folder's number in its pipe's name. Made of the path's parts, so `D:\rdm`,
 /// `D:/rdm` and `D:\rdm\` are one folder with one manager, as they are on disk.
+#[cfg(any(windows, test))]
 fn folder_number(home: &Path) -> u64 {
     // 0xff ends each part: it is in no UTF-8 text, so "ab" + "c" is not "a" + "bc".
     fnv1a(home.components().flat_map(|part| part.as_os_str().as_encoded_bytes().iter().copied().chain([0xff])))
@@ -117,9 +119,19 @@ pub fn socket_name(home: &Path) -> io::Result<Name<'static>> {
     #[cfg(unix)]
     {
         use interprocess::local_socket::{GenericFilePath, ToFsName};
-        Ok(home.join("daemon.sock").to_fs_name::<GenericFilePath>()?.into_owned())
+        let path = home.join("daemon.sock");
+        if path.as_os_str().len() > SOCKET_PATH_MAX {
+            let (shown, bytes) = (path.display(), path.as_os_str().len());
+            let long = format!("the data folder's path is too long for its socket ({shown} has {bytes} bytes, the system takes {SOCKET_PATH_MAX})");
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, long));
+        }
+        Ok(path.to_fs_name::<GenericFilePath>()?.into_owned())
     }
 }
+
+/// macOS keeps a socket's path in 104 bytes (`sockaddr_un`), the last of them a NUL.
+#[cfg(unix)]
+const SOCKET_PATH_MAX: usize = 103;
 
 /// Connecting to a named pipe whose instances are all busy waits indefinitely; a live
 /// daemon always has a free one, so a slow connect means nobody is serving.
@@ -145,6 +157,9 @@ pub async fn listen(home: &Path) -> crate::Result<Listener> {
     if connect(home).await.is_ok() {
         return Err(crate::Error::Invalid("the daemon is already running".into()));
     }
+    // The socket is a file in the data folder (macOS), which a first start has yet to make.
+    #[cfg(unix)]
+    std::fs::create_dir_all(home)?;
     // Nobody answered, so a leftover socket file (macOS, after a crash) can be replaced.
     Ok(ListenerOptions::new().name(socket_name(home)?).try_overwrite(true).create_tokio()?)
 }
@@ -328,6 +343,16 @@ mod tests {
         assert_eq!(folder_number(Path::new("data")), fnv1a(*b"data\xff"));
         assert_eq!(folder_number(Path::new("a/bc")), fnv1a(*b"a\xffbc\xff"));
         assert_ne!(folder_number(Path::new("ab/c")), folder_number(Path::new("a/bc")));
+    }
+
+    /// A data folder too deep for its socket is refused in words that say so.
+    #[cfg(unix)]
+    #[test]
+    fn a_folder_too_long_for_its_socket_is_refused() {
+        let fits = Path::new("/").join("a".repeat(SOCKET_PATH_MAX - "/daemon.sock".len() - 1));
+        assert!(socket_name(&fits).is_ok());
+        let error = socket_name(&fits.join("b")).unwrap_err().to_string();
+        assert!(error.contains("too long for its socket"), "{error}");
     }
 
     /// One folder, however it is written, has one pipe: a second manager on it would

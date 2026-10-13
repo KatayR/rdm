@@ -25,6 +25,7 @@
     color-scheme: dark;
   }
 }
+/* (user-select is written twice throughout: a Mac's WebKit only knows the -webkit- one.) */
 * { box-sizing: border-box; }
 /* Layout rules below set display, which would otherwise beat the hidden attribute. */
 [hidden] { display: none !important; }
@@ -33,7 +34,7 @@ body {
   background: var(--face);
   color: var(--text);
   font: 12px "Segoe UI", system-ui, -apple-system, sans-serif;
-  user-select: none;
+  -webkit-user-select: none; user-select: none;
   cursor: default;
 }
 body.dialog { padding: 14px 16px; display: flex; flex-direction: column; gap: 9px; }
@@ -69,15 +70,15 @@ button:disabled { opacity: 0.5; }
 .buttons { display: flex; gap: 8px; align-items: center; margin-top: auto; }
 .grow { flex: 1; }
 .muted { color: var(--muted); }
-.error { color: var(--error); min-height: 16px; user-select: text; }
+.error { color: var(--error); min-height: 16px; -webkit-user-select: text; user-select: text; }
 .headline { font-size: 15px; font-weight: 600; }
-.copy { user-select: text; }
-.notes { white-space: pre-wrap; max-height: 180px; overflow-y: auto; user-select: text; }
+.copy { -webkit-user-select: text; user-select: text; }
+.notes { white-space: pre-wrap; max-height: 180px; overflow-y: auto; -webkit-user-select: text; user-select: text; }
 .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lines > div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
+.lines > div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; -webkit-user-select: text; user-select: text; }
 table.kv { border-collapse: collapse; width: 100%; table-layout: fixed; }
 table.kv th { width: 132px; text-align: left; font-weight: normal; color: var(--muted); padding: 2px 0; vertical-align: top; }
-table.kv td { padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
+table.kv td { padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; -webkit-user-select: text; user-select: text; }
 /* A label beside a field. */
 table.kv th.middle { vertical-align: middle; }
 /* A long value shown whole (a hash). */
@@ -147,7 +148,7 @@ table.list td.num { text-align: right; }
 /* The download list: columns of set widths (scrolling sideways when wider than the
    window), sorted by a click on a header, resized by dragging its right edge. */
 #downloads { width: auto; }
-#downloads th { cursor: default; user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#downloads th { cursor: default; -webkit-user-select: none; user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #downloads th:hover { background: var(--field); }
 #downloads th .arrow { color: var(--muted); margin-left: 4px; font-size: 10px; }
 #downloads th .grip { position: absolute; top: 0; right: -1px; width: 7px; height: 100%; cursor: col-resize; }

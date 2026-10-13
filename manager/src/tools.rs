@@ -58,9 +58,10 @@ impl Tool {
     }
 
     /// Where earlier versions kept the program (yt-dlp's one-file build): still used until
-    /// the next update installs the folder build, which then deletes it.
+    /// the next update installs the folder build, which then deletes it. Only Windows had
+    /// such versions (and elsewhere a program named `yt-dlp` would be the folder itself).
     fn old_file(self) -> Option<PathBuf> {
-        (self == Tool::YtDlp).then(|| PathBuf::from(format!("yt-dlp{}", std::env::consts::EXE_SUFFIX)))
+        (cfg!(windows) && self == Tool::YtDlp).then(|| PathBuf::from("yt-dlp.exe"))
     }
 }
 
@@ -412,9 +413,11 @@ mod tests {
         std::fs::write(dir.join("yt-dlp").join("stale.dll"), b"old").unwrap();
         let tools = Tools::new(dir.clone()).unwrap();
         assert_eq!(tools.path(Tool::YtDlp), None);
-        let old = dir.join(Tool::YtDlp.old_file().unwrap());
-        std::fs::write(&old, b"one-file build").unwrap();
-        assert_eq!(tools.path(Tool::YtDlp), Some(old.clone()), "the old program until the update");
+        if let Some(old) = Tool::YtDlp.old_file() {
+            let old = dir.join(old);
+            std::fs::write(&old, b"one-file build").unwrap();
+            assert_eq!(tools.path(Tool::YtDlp), Some(old), "the old program until the update");
+        }
         assert_eq!(tools.installed(Tool::YtDlp), None, "so the update installs the folder build");
 
         let program = Tool::YtDlp.file();

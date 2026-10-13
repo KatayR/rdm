@@ -184,7 +184,11 @@ pub async fn packet_hashes(ffmpeg: &Path, file: &Path, stream: &str, strip_adts:
 /// in `target/ffmpeg-min` (see `ffmpeg/README.md`).
 #[cfg(test)]
 pub(crate) fn ffmpeg_in_tests() -> PathBuf {
-    let built = if cfg!(windows) { "ffmpeg-win64/ffmpeg.exe" } else { "ffmpeg-macos-arm64/ffmpeg" };
+    let built = match (cfg!(windows), std::env::consts::ARCH) {
+        (true, _) => "ffmpeg-win64/ffmpeg.exe",
+        (false, "aarch64") => "ffmpeg-macos-arm64/ffmpeg",
+        (false, _) => "ffmpeg-macos-x64/ffmpeg",
+    };
     std::env::var_os("RDM_FFMPEG")
         .map_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")).join("../target/ffmpeg-min/work").join(built), PathBuf::from)
 }

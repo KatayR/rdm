@@ -1,6 +1,7 @@
 #!/bin/bash
 # Minimal, LGPL, stream-copy-only ffmpeg for RDM, cross-compiled with zig cc.
 # Usage (inside WSL): bash build_ffmpeg.sh win64|macos-arm64|macos-x64|linux-x64 [extra configure flags]
+# On a Mac the two macOS targets are built with Xcode's clang instead, without zig.
 set -euo pipefail
 . "$(dirname "$0")/env.sh"
 TARGET=$1; shift
@@ -11,10 +12,12 @@ case $TARGET in
     linux-x64)   ZT=x86_64-linux-musl;  OS=linux;   ARCH=x86_64 ;;
     *) echo "unknown target $TARGET"; exit 2 ;;
 esac
+MAC=; [ "$(uname)" = Darwin ] && MAC=1
+if [ -n "$MAC" ] && [ $OS != darwin ]; then echo "on a Mac only macos-arm64 and macos-x64 are built"; exit 2; fi
 OUT=$ROOT/work/ffmpeg-$TARGET${SUFFIX:-}
 # zig cannot rename its macOS runtime builds inside a cache on the Windows drive (drvfs,
 # AccessDenied every time); those targets get a throwaway cache in WSL's /tmp, removed at the end.
-if [ $OS = darwin ]; then
+if [ $OS = darwin ] && [ -z "$MAC" ]; then
     export ZIG_GLOBAL_CACHE_DIR=/tmp/rdm-ffmpeg-min-zig-cache ZIG_LOCAL_CACHE_DIR=/tmp/rdm-ffmpeg-min-zig-cache
     trap 'rm -rf /tmp/rdm-ffmpeg-min-zig-cache' EXIT
 fi
@@ -57,19 +60,39 @@ case $OS in
     mingw32) FLAGS+=(--disable-pthreads --enable-w32threads) ;;
 esac
 
+if [ -n "$MAC" ]; then
+    # The oldest macOS RDM's own programs run on, for each kind of Mac.
+    case $ARCH in aarch64) CA=arm64; MIN=11.0 ;; *) CA=x86_64; MIN=10.13 ;; esac
+    TOOLS=(--cc="clang -arch $CA -mmacosx-version-min=$MIN")
+    # The other kind of Mac than this one: configure cannot run what it builds.
+    [ "$(uname -m)" = $CA ] || TOOLS+=(--enable-cross-compile --target-os=$OS --arch=$ARCH --host-cc=clang)
+    JOBS=$(sysctl -n hw.ncpu)
+else
+    TOOLS=(
+        --enable-cross-compile --target-os=$OS --arch=$ARCH
+        --cc="zigcc -target $ZT" --ld="zigcc -target $ZT"
+        --host-cc="zig cc" --ar="zig ar" --ranlib="zig ranlib" --nm=true --strip=true
+        --extra-ldflags="-s"
+    )
+    JOBS=$(nproc)
+fi
+
 "$B/ffmpeg-9.0.2/configure" \
-    --enable-cross-compile --target-os=$OS --arch=$ARCH \
-    --cc="zigcc -target $ZT" --ld="zigcc -target $ZT" \
-    --host-cc="zig cc" --ar="zig ar" --ranlib="zig ranlib" --nm=true --strip=true \
+    "${TOOLS[@]}" \
     --pkg-config=false \
-    --extra-ldflags="-s" \
     "${FLAGS[@]}" "$@" > configure.out 2>&1 || { tail -30 configure.out; tail -40 ffbuild/config.log; exit 1; }
 
 grep -E '^(Enabled|External|License)' -A3 configure.out | head -60
 # make 4.4's default jobserver uses a fifo, which the Windows drive under WSL cannot hold.
 JS=; make --version | grep -q 'Make 4\.[4-9]' && JS=--jobserver-style=pipe
-make -j"$(nproc)" $JS > make.out 2>&1 || { grep -E 'error|Error' make.out | head -40; exit 1; }
-# Linked with -s already; the Makefile only copies ffmpeg_g to ffmpeg when it strips.
-EXE=; [ $OS = mingw32 ] && EXE=.exe
-cp "$OUT/ffmpeg_g$EXE" "$OUT/ffmpeg$EXE"
+make -j"$JOBS" $JS > make.out 2>&1 || { grep -E 'error|Error' make.out | head -40; exit 1; }
+if [ -n "$MAC" ]; then
+    # The Makefile stripped ffmpeg_g into ffmpeg, which leaves the linker's signature stale,
+    # and an Apple silicon Mac runs nothing without a valid one.
+    codesign --force --sign - "$OUT/ffmpeg"
+else
+    # Linked with -s already; the Makefile only copies ffmpeg_g to ffmpeg when it strips.
+    EXE=; [ $OS = mingw32 ] && EXE=.exe
+    cp "$OUT/ffmpeg_g$EXE" "$OUT/ffmpeg$EXE"
+fi
 ls -l "$OUT"/ffmpeg*

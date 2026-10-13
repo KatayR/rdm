@@ -2,6 +2,10 @@
 const { invoke } = window.__TAURI__.core;
 const thisWindow = window.__TAURI__.window.getCurrentWindow();
 
+// On a Mac some keys differ (main.js), the programs are inside the app (options.js), and a
+// window's title bar comes out of its size (fitWindow).
+const isMac = navigator.platform.startsWith("Mac");
+
 const el = (id) => document.getElementById(id);
 const param = (name) => new URLSearchParams(location.search).get(name);
 
@@ -158,8 +162,18 @@ function wireChecksum(id, width) {
 async function fitWindow(width) {
   document.body.style.width = `${width}px`;
   const pixels = (length) => Math.ceil(length * devicePixelRatio);
-  const height = document.body.getBoundingClientRect().height;
+  const height = document.body.getBoundingClientRect().height + (await titleBarHeight());
   await thisWindow.setSize(new window.__TAURI__.window.PhysicalSize(pixels(width), pixels(height)));
+}
+
+// What a Mac takes out of the height a window is given, in the page's pixels: there the
+// size set is the whole window's, and the page gets what its title bar leaves (seen on
+// macOS 26: 32 less). Measured, as the window is now, rather than known: a macOS that
+// gives the page the whole height has 0 here. On Windows the size set is the page's.
+async function titleBarHeight() {
+  if (!isMac) return 0;
+  const given = (await thisWindow.innerSize()).height / devicePixelRatio;
+  return Math.max(0, Math.floor(given - innerHeight));
 }
 
 // Shows a window that opened hidden (windows.rs) once `prepare` has filled and fitted it.

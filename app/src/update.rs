@@ -61,9 +61,15 @@ fn describe(update: &Update, state: &AppState) -> Found {
 }
 
 /// Whether this copy was put here by the setup, which leaves its uninstaller beside the
-/// programs. A copy run from the build folder is not what a setup would replace.
-fn installed() -> bool {
-    std::env::current_exe().is_ok_and(|me| me.with_file_name("uninstall.exe").is_file())
+/// programs. A copy run from the build folder is not what a setup would replace. A Mac has
+/// no setup: there an installed copy is one in an app bundle (`RDM.app/Contents/MacOS`).
+pub(crate) fn installed() -> bool {
+    let Ok(me) = std::env::current_exe() else { return false };
+    if cfg!(target_os = "macos") {
+        me.parent().is_some_and(|folder| folder.ends_with("Contents/MacOS"))
+    } else {
+        me.with_file_name("uninstall.exe").is_file()
+    }
 }
 
 /// Asks the release page; what it found is kept for the window and the install.
@@ -144,7 +150,7 @@ pub fn app_version() -> &'static str {
 #[tauri::command]
 pub async fn update_check(app: AppHandle) -> Result<Option<Found>, String> {
     if !installed() {
-        return Err("This copy was not installed by RDM's setup, so it does not update itself.".into());
+        return Err("This copy of RDM was not installed (it runs from where it was built), so it does not update itself.".into());
     }
     look(&app).await
 }
@@ -169,6 +175,7 @@ pub fn update_progress(state: State<AppState>) -> (u64, u64) {
 /// "Update now": fetches the setup and checks its signature, then hands over to it: RDM
 /// closes down (`look`'s `on_before_exit`), the setup puts the new programs in place and
 /// starts RDM again. An error before RDM began to close leaves it running as it was.
+/// On a Mac the update is no setup but the new app itself (`hand_over`).
 #[tauri::command]
 pub async fn update_install(app: AppHandle) -> Result<(), String> {
     let state = app.state::<AppState>();
@@ -184,9 +191,7 @@ pub async fn update_install(app: AppHandle) -> Result<(), String> {
         size.store(of.unwrap_or(0), Ordering::Relaxed);
     };
     let failed = match update.download(chunk, || {}).await {
-        // Writes the setup to disk, closes RDM down, starts the setup and ends this
-        // program: it returns only when one of these did not work.
-        Ok(setup) => update.install(setup).err().map_or_else(|| "the setup did not start".to_owned(), |e| e.to_string()),
+        Ok(setup) => hand_over(&app, &update, setup).await,
         Err(e) => e.to_string(),
     };
     if app.state::<AppState>().closed_down() {
@@ -194,4 +199,24 @@ pub async fn update_install(app: AppHandle) -> Result<(), String> {
     }
     state.updates.installing.store(false, Ordering::Relaxed);
     Err(failed)
+}
+
+/// Writes the setup to disk, closes RDM down, starts the setup and ends this program: it
+/// returns only when one of these did not work, with what went wrong.
+#[cfg(not(target_os = "macos"))]
+async fn hand_over(_app: &AppHandle, update: &Update, setup: Vec<u8>) -> String {
+    update.install(setup).err().map_or_else(|| "the setup did not start".to_owned(), |e| e.to_string())
+}
+
+/// On a Mac: closes RDM down, puts the new app in the place of this one and starts it. The
+/// programs of the old one that still run (the browsers' helper, say) keep their files
+/// until they end. The new app tells the browsers about itself as every start does
+/// (`tell_browsers`). It returns only when the new app could not be put in place.
+#[cfg(target_os = "macos")]
+async fn hand_over(app: &AppHandle, update: &Update, new_app: Vec<u8>) -> String {
+    crate::close_down(app).await;
+    match update.install(new_app) {
+        Ok(()) => app.restart(),
+        Err(e) => e.to_string(),
+    }
 }

@@ -2,8 +2,7 @@
 
 RDM (Rusty Download Manager) is a download manager in Rust: downloads over many connections
 at once, resume, queues and a scheduler, categories, speed limits, the browser taking every
-download, and video downloads from web pages. It runs on Windows today; macOS is planned (most
-of the code already has its macOS side, but it has not been built on a Mac yet).
+download, and video downloads from web pages. It runs on Windows and on macOS.
 
 Its windows and the way it works will be familiar to those who know Internet Download
 Manager. RDM is written from scratch and is not affiliated with Tonec; it contains none of
@@ -11,8 +10,9 @@ Internet Download Manager's code, icons or images. "Internet Download Manager" a
 names of Tonec's product.
 
 Status: version 0.3.0, the first under the name RDM and the first with a setup exe and its
-own update. The setup is on the [releases page](https://github.com/KatayR/rdm/releases/latest);
-what it does is under [The setup exe and updates](#the-setup-exe-and-updates).
+own update. The setup, and the Mac's disk image (for Apple silicon), are on the
+[releases page](https://github.com/KatayR/rdm/releases/latest); what they do is under
+[The setup exe and updates](#the-setup-exe-and-updates) and [On a Mac](#on-a-mac).
 
 - [Features](#features)
 - [Repository layout](#repository-layout)
@@ -186,6 +186,7 @@ what it does is under [The setup exe and updates](#the-setup-exe-and-updates).
 | `ui/` | One `.html` + `.js` per window (`main`, `info`, `progress`, `complete`, `properties`, `delete`, `video`, `options`, `update`), plus `common.js` and `style.css`. |
 | `tauri.conf.json`, `capabilities/default.json`, `build.rs`, `icons/` | Tauri's configuration (with the update's address and public key), what the windows may do, the build script, the icons. |
 | `tauri.bundle.json`, `installer/hooks.nsh` | What only the setup exe needs (merged in by `package.ps1`): the files to ship, and the setup's own steps. |
+| `tauri.bundle.macos.json` | What only the Mac's app bundle needs (merged in by `package.sh`): the files inside the app. |
 
 ### extension
 
@@ -210,32 +211,40 @@ what it does is under [The setup exe and updates](#the-setup-exe-and-updates).
 
 ## Building
 
-Needs:
+Needs, on Windows:
 - Rust stable (built with 1.99.0) with the MSVC toolchain.
 - Visual Studio Build Tools with the C++ workload and a Windows SDK.
 - WebView2 (built into Windows 11), for the app.
+
+On a Mac:
+- Rust stable (built with 1.99.0).
+- Xcode or its command line tools (`xcode-select --install`).
 
 ```
 cargo build --release -p rdm -p rdm-app
 ```
 
-This gives `target\release\rdm.exe`, `rdm-host.exe` and `rdm-app.exe`. The three must
+This gives `target\release\rdm.exe`, `rdm-host.exe` and `rdm-app.exe` (on a Mac
+`target/release/rdm`, `rdm-host` and `rdm-app`). The three must
 stay in the same folder: the command starts the app next to it, and the browser registration
-points to the host next to it. None of them needs the Visual C++ runtime installed (it is
-linked in: by tauri-build for the app, by `cli/build.rs` for the other two).
+points to the host next to it. On Windows none of them needs the Visual C++ runtime installed
+(it is linked in: by tauri-build for the app, by `cli/build.rs` for the other two).
 
-ffmpeg is looked for in the same folder (`ffmpeg.exe` beside the programs), which is where
-an installed RDM has it. For work from the build folder, set `RDM_FFMPEG` to the build made
-by `ffmpeg/` (`target\ffmpeg-min\work\ffmpeg-win64\ffmpeg.exe`) or copy that file next to
+ffmpeg is looked for in the same folder (`ffmpeg.exe` beside the programs, `ffmpeg` on a
+Mac), which is where an installed RDM has it. For work from the build folder, set
+`RDM_FFMPEG` to the build made by `ffmpeg/` (`target\ffmpeg-min\work\ffmpeg-win64\ffmpeg.exe`;
+on a Mac `target/ffmpeg-min/work/ffmpeg-macos-arm64/ffmpeg`, or `ffmpeg-macos-x64` on an
+Intel Mac) or copy that file next to
 the programs. Without it everything works except videos whose streams have to be joined or
 repacked (those fail and say where ffmpeg belongs), and the length check of a finished video
 is skipped.
 
 The app has no frontend build step: `app/ui` is served as it is. `cargo build` makes no
-setup exe (`bundle.active: false` in `app/tauri.conf.json`); `package.ps1` does, see
-[The setup exe and updates](#the-setup-exe-and-updates).
+setup exe and no app bundle (`bundle.active: false` in `app/tauri.conf.json`); `package.ps1`
+and, on a Mac, `package.sh` do, see [The setup exe and updates](#the-setup-exe-and-updates).
 
-The minimal ffmpeg is built separately, in WSL, as described in [ffmpeg/README.md](ffmpeg/README.md).
+The minimal ffmpeg is built separately, in WSL or (the Mac's) on a Mac, as described in
+[ffmpeg/README.md](ffmpeg/README.md).
 
 ## Setting up
 
@@ -269,6 +278,17 @@ download, which the new copy takes, and the video button says to reload the page
 
 `rdm browser uninstall` removes the registration and the host manifest. The extension's files
 stay in `%APPDATA%\rdm\extension`, and the extension is removed from the browser by hand.
+
+On a Mac the steps are the same, in other places:
+
+- The programs have no `.exe` (`target/release/rdm-app`, `target/release/rdm browser install`).
+- The data folder is `~/Library/Application Support/rdm`: the extension is loaded from its
+  `extension` (in Load unpacked's file window, Cmd+Shift+G takes a typed path; the Library
+  folder is not shown), and the video tools go to its `tools`.
+- There is no registry: `rdm browser install` puts a copy of the host manifest where each
+  browser looks, `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.rdm.host.json`
+  and `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.rdm.host.json`,
+  and `rdm browser uninstall` deletes the two.
 
 ## The setup exe and updates
 
@@ -316,6 +336,35 @@ going wrong:
 - A file a new version no longer ships stays on disk; nothing starts it. One that must go is
   deleted by name in `hooks.nsh`.
 
+### On a Mac
+
+There is no setup: `package.sh` makes the app, `RDM.app`, and a disk image
+(`RDM_<version>_<arch>.dmg`) from which it is dragged to Applications. Inside the app,
+`Contents/MacOS` holds the three programs and `ffmpeg`, and `Contents/Resources/licenses`
+the licences. The command line is `/Applications/RDM.app/Contents/MacOS/rdm`.
+
+What the setup does once on Windows, the app does at every start: it runs
+`rdm browser install`, so steps 1 and 2 of [Setting up](#setting-up) are done, and stay done
+after an update and after the app was moved. The extension is still loaded by hand (step 3,
+from `~/Library/Application Support/rdm/extension`) and the video tools are fetched from
+Options (step 4). A copy run from the build folder does none of this by itself, as on Windows.
+
+The app is signed without a certificate and not notarized by Apple, so macOS refuses to open
+a downloaded copy until it is allowed: System Settings, Privacy & Security, Open Anyway.
+
+To remove RDM, run `rdm browser uninstall` while the app is still there, then put the app in
+the Trash. The list, the tools and the extension's files stay in
+`~/Library/Application Support/rdm` until that folder is deleted.
+
+An update is the new app itself (`RDM_<version>_<arch>.app.tar.gz`), found, fetched and
+checked against the key as the setup is on Windows. RDM then closes down as Exit does, puts
+the new app in the place of the old one in one step, and starts it; the start tells the
+browsers and writes the extension's files, as every start does. A program of the old app
+that is still at work (the browsers' helper, ffmpeg) keeps its files until it ends, and a
+helper of the old version is refused by the new app like any other version (see
+[The manager](#the-manager)). An app in a folder the account may not write to asks for an
+administrator's password.
+
 ### Making a release
 
 1. Set the version in `Cargo.toml` (`[workspace.package]`) and in `extension/manifest.json`
@@ -324,11 +373,19 @@ going wrong:
    libraries' licences (cargo-about, `about.toml`), then the setup with Tauri's bundler
    (`cargo tauri build` with `app/tauri.bundle.json` merged in), signs it and writes
    `latest.json`. All three files are in `target\release\bundle\nsis`.
-3. A GitHub release named `v<version>` gets the setup, its `.sig`, `latest.json`, and
-   `ffmpeg-9.0.2.tar.xz` (ffmpeg's source has to be offered where its program is). Installed
-   RDMs find it through the `latest` release.
+3. On a Mac, `./package.sh --latest <that latest.json>` does the same for the Mac's app
+   (`app/tauri.bundle.macos.json` merged in): the disk image is in `target/release/bundle/dmg`;
+   the update (`.app.tar.gz`), its `.sig` and a `latest.json` that now names both systems are
+   in `target/release/bundle/macos`. It builds for the kind of Mac it runs on (Apple silicon
+   or Intel); run on the other kind with the new `latest.json`, it adds that one too. Without
+   `--latest` its `latest.json` names the Mac alone.
+4. A GitHub release named `v<version>` gets the setup, its `.sig`, the Mac's disk image,
+   update and `.sig`, the `latest.json` made last, and `ffmpeg-9.0.2.tar.xz` (ffmpeg's source
+   has to be offered where its program is). Installed RDMs find it through the `latest`
+   release.
 
-The update key is `%USERPROFILE%\.tauri\rdm-update.key` (or `TAURI_SIGNING_PRIVATE_KEY`),
+The update key is `%USERPROFILE%\.tauri\rdm-update.key` (on a Mac `~/.tauri/rdm-update.key`;
+or `TAURI_SIGNING_PRIVATE_KEY`),
 outside the repository; its public half is `plugins.updater.pubkey` in `app/tauri.conf.json`.
 **Without the key no installed RDM can be given an update, ever**: it has to be kept in a
 second place. A fork that makes setups of its own needs its own pair (`cargo tauri signer
@@ -337,7 +394,8 @@ generate`), with the public half and its own address (`endpoints`) in `app/tauri
 A release is tried before it is public by installing a build whose update address is the PC itself
 (`-Config` with a file that sets `plugins.updater.endpoints` to `http://127.0.0.1:<port>/latest.json`
 and `dangerousInsecureTransportProtocol`), and serving the next version's three files there
-(`-Url` gives `latest.json` the local address of the setup).
+(`-Url` gives `latest.json` the local address of the setup). `package.sh` takes the same
+as `--config` and `--url`.
 
 ## The app
 
@@ -387,6 +445,15 @@ and `dangerousInsecureTransportProtocol`), and serving the next version's three 
 Only Exit in the tray or `rdm shutdown` quits. Downloads running at that moment continue on
 the next start.
 
+On a Mac:
+
+- The tray icon is in the menu bar, and a click on it opens its menu (on Windows a click
+  opens the main window and a right click the menu).
+- Quit in the menu bar or the Dock (Cmd+Q) quits as Exit does. Closing the main window keeps
+  RDM running, and a click on its Dock icon opens the window again.
+- In the list, Cmd+click adds to the selection (Ctrl+click on Windows), and the delete key
+  asks as the Delete key does.
+
 ## Command line
 
 `rdm` talks to the running app (or a headless manager) over a local socket and starts the app
@@ -430,6 +497,7 @@ whoever started it.
 | `catch-rules.json` | Optional, written by hand: the person's own rules for what the extension catches, used instead of the built-in `extension/rules.json` (same shape). |
 | `tools/` | yt-dlp, Deno, yt-dlp's cache and `tools.json` (versions, last check). |
 | `extension/`, `com.rdm.host.json` | Written by `rdm browser install`. |
+| `daemon.sock` | On a Mac, the socket of the manager that runs (Windows has a named pipe instead). macOS takes at most 103 bytes for a socket's path, so a data folder whose path is longer is refused. |
 | `daemon.log`, `app.log`, `host.log` | Logs of a manager started in the background, of the app (panics), and of the browser helper (requests by type and address only; cookies are never written). |
 
 Partial files sit next to their target as `<name>.part`, with the resume state in
@@ -604,7 +672,8 @@ cargo test --workspace
   runs at the same time do not meet.
 - Eight tests need ffmpeg, most of them two kinds. What RDM itself does is run with the
   ffmpeg RDM ships: where `RDM_FFMPEG` points, else `target\ffmpeg-min\work\ffmpeg-win64\ffmpeg.exe`
-  (the build made by `ffmpeg/`). The sample videos and the packet hashes are made with a full
+  (the build made by `ffmpeg/`; on a Mac `ffmpeg-macos-arm64/ffmpeg` or, on Intel,
+  `ffmpeg-macos-x64/ffmpeg` in the same `work`). The sample videos and the packet hashes are made with a full
   ffmpeg, which the shipped one cannot do (no encoders): where `RDM_FFMPEG_FULL` points, else
   the `ffmpeg` on the PATH. A test that lacks one fails and says so, rather than pass without
   checking anything.
@@ -617,7 +686,16 @@ cargo test --workspace
 
 ## Known gaps
 
-- **macOS**: not built or run on a Mac yet.
+- **macOS**: built and tried on one Apple silicon Mac (macOS 26); an Intel Mac's build is
+  untried. Tried there: the tests, the command line, the manager, the video tools and
+  ffmpeg, the app's start, quit and update, and a video taken from a page in the browser,
+  with the Download Video, progress and complete windows. Not tried yet: a plain download
+  taken from the browser, and the other windows by hand (Download File Info, Options,
+  Properties, Delete, the update's). The windows that take their content's height are
+  made taller by the title bar there, which macOS takes out of a window's size; the main
+  window, Options and Download Video are not, and show that much less than on Windows. The
+  app is not notarized (macOS has to be told to open it, see [On a Mac](#on-a-mac)) and has
+  no "start at login".
 - **Linux**: not supported; `cli/src/browser.rs` has no Linux code.
 - **Browsers**: Brave and Chrome only. No Firefox or Safari.
 - **Sites behind Cloudflare's bot check** may refuse RDM even with the browser's cookies,

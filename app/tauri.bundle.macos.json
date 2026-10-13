@@ -1,0 +1,18 @@
+{
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "createUpdaterArtifacts": true,
+    "macOS": {
+      "signingIdentity": "-",
+      "files": {
+        "MacOS/rdm": "../target/release/rdm",
+        "MacOS/rdm-host": "../target/release/rdm-host",
+        "Resources/licenses/RDM.txt": "../LICENSE",
+        "Resources/licenses/libraries.html": "../target/licenses/libraries.html",
+        "Resources/licenses/ffmpeg.txt": "../ffmpeg/NOTICE.txt",
+        "Resources/licenses/ffmpeg-LGPL-2.1.txt": "../ffmpeg/COPYING.LGPLv2.1"
+      }
+    }
+  }
+}

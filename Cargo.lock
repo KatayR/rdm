@@ -4280,6 +4280,7 @@ version = "0.3.0"
 dependencies = [
  "engine",
  "manager",
+ "objc2-core-foundation",
  "serde",
  "serde_json",
  "tauri",

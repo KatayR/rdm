@@ -178,6 +178,8 @@ fn main() {
                 windows::show_main(app.handle());
             }
             spawn(update::keep_looking(app.handle().clone()));
+            #[cfg(target_os = "macos")]
+            std::thread::spawn(tell_browsers);
             {
                 let handle = app.handle().clone();
                 std::thread::spawn(move || update::clear_old_setups(&handle));
@@ -196,13 +198,24 @@ fn main() {
         })
         .build(tauri::generate_context!())
         .unwrap_or_else(|e| fatal(&format!("RDM could not start.\n\n{e}")))
-        .run(|app, event| {
+        .run(|app, event| match event {
             // Closing the last window keeps the tray; only Exit (or Shutdown) quits.
-            if let RunEvent::ExitRequested { api, code: None, .. } = event
-                && !app.state::<AppState>().quitting.load(Ordering::Relaxed)
-            {
+            RunEvent::ExitRequested { api, code: None, .. } if !app.state::<AppState>().quitting.load(Ordering::Relaxed) => {
                 api.prevent_exit();
             }
+            // A click on the Dock icon: the main window, which closing only hid.
+            #[cfg(target_os = "macos")]
+            RunEvent::Reopen { .. } => windows::show_main(app),
+            // An end that did not come through `quit`: on a Mac, Quit in the menu bar or the
+            // Dock (Cmd+Q), and the system shutting down. The downloads are stopped as Exit
+            // stops them.
+            RunEvent::Exit => {
+                let state = app.state::<AppState>();
+                if !state.quitting.swap(true, Ordering::Relaxed) {
+                    block_on(state.manager.shutdown());
+                }
+            }
+            _ => {}
         });
 }
 
@@ -222,7 +235,41 @@ pub(crate) fn fatal(text: &str) -> ! {
             MessageBoxW(std::ptr::null_mut(), text.as_ptr(), title.as_ptr(), MB_OK | MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST);
         }
     }
+    #[cfg(target_os = "macos")]
+    {
+        use objc2_core_foundation::{CFString, CFUserNotification, kCFUserNotificationStopAlertLevel};
+        let (text, title) = (CFString::from_str(text), CFString::from_static_str("RDM"));
+        let mut pressed = 0;
+        // SAFETY: both strings live until the call returns, and `pressed` is a place for
+        // the button it reports.
+        unsafe {
+            // The system's own alert, which is above every window and needs none of the
+            // app's. No time limit: it stays until it is answered.
+            let level = kCFUserNotificationStopAlertLevel;
+            CFUserNotification::display_alert(0.0, level, None, None, None, Some(&title), Some(&text), None, None, None, &mut pressed);
+        }
+    }
     std::process::exit(1)
+}
+
+/// What the setup does on Windows once the programs are in place, the app does on a Mac at
+/// every start, as there is no setup: `rdm browser install` tells the browsers where this
+/// copy's helper is and writes the extension's files from it. So that also holds after an
+/// update, and after the app was moved. Not for a copy run from the build folder.
+#[cfg(target_os = "macos")]
+fn tell_browsers() {
+    use std::process::{Command, Stdio};
+    if !update::installed() {
+        return;
+    }
+    let Ok(me) = std::env::current_exe() else { return };
+    let mut install = Command::new(me.with_file_name("rdm"));
+    let told = install.args(["browser", "install"]).stdin(Stdio::null()).stdout(Stdio::null()).output();
+    match told {
+        Ok(output) if output.status.success() => {}
+        Ok(output) => eprintln!("rdm-app: rdm browser install: {}", String::from_utf8_lossy(&output.stderr).trim()),
+        Err(e) => eprintln!("rdm-app: rdm browser install: {e}"),
+    }
 }
 
 /// The app has no console, so a panic would vanish (a panic on the window thread even
@@ -289,7 +336,9 @@ fn tray(app: &AppHandle) -> tauri::Result<()> {
         &[&open, &options, &separator, &limiter, &separator, &start, &stop, &separator, &exit],
     )?;
     *app.state::<AppState>().limiter_item.lock().unwrap() = Some(limiter);
-    let mut builder = TrayIconBuilder::with_id("main").tooltip("RDM").menu(&menu).show_menu_on_left_click(false);
+    // On a Mac a click on a menu bar icon opens its menu, whose first line opens RDM.
+    let mut builder =
+        TrayIconBuilder::with_id("main").tooltip("RDM").menu(&menu).show_menu_on_left_click(cfg!(target_os = "macos"));
     if let Some(icon) = app.default_window_icon() {
         builder = builder.icon(icon.clone());
     }
@@ -316,7 +365,9 @@ fn tray(app: &AppHandle) -> tauri::Result<()> {
             }
         })
         .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+            if cfg!(not(target_os = "macos"))
+                && let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event
+            {
                 windows::show_main(tray.app_handle());
             }
         })

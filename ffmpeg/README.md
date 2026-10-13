@@ -6,7 +6,7 @@ folder builds an ffmpeg with exactly that from the official source: one 4.2 MB p
 instead of the 157 MB LGPL build from BtbN. It has the H.264 / HEVC decoders, so every MP4
 is byte-identical to the full ffmpeg's, and the VP9 decoder (3.6 MB became 4.2 MB), because
 VP9 into MP4 came out unreadable without it (see "What needs a decoder"). The win64 build
-ships beside RDM's programs.
+ships beside RDM's programs, and the macOS build inside the Mac's app.
 
 ## What is in it
 
@@ -47,6 +47,23 @@ Cross-compiled inside WSL (Ubuntu) with portable zig; nothing is installed. Targ
 `ROOT=<folder>` (see `env.sh`) builds in another folder that already holds `build/`.
 The builds of 2026-10-10: win64 4,231,680 bytes, macos-arm64 4,117,528 bytes.
 
+### On a Mac
+
+The Mac's build is made on a Mac, with Xcode's clang and make (Xcode or its command line
+tools) instead of zig; of the downloads only ffmpeg's are needed, and `gpg` to check them
+(`brew install gnupg`). The same scripts see where they run:
+
+1. Download ffmpeg's three files into `target/ffmpeg-min/downloads/ffmpeg/` (step 1 above).
+2. `bash ffmpeg/verify_and_unpack.sh target/ffmpeg-min`
+3. `bash ffmpeg/build_ffmpeg.sh macos-arm64` (half a minute); the program is in
+   `target/ffmpeg-min/work/ffmpeg-macos-arm64/`. `macos-x64` is the Intel Mac's, and either
+   kind of Mac builds both.
+
+The program runs on macOS 11 and later (`macos-x64`: 10.13) and is signed without a
+certificate, which an Apple silicon Mac asks of every program. The builds of 2026-10-13
+(Apple clang 21, on Apple silicon): macos-arm64 3,465,232 bytes, macos-x64 4,095,216 bytes
+(started once under Rosetta, not tried further).
+
 ## Proving it loses nothing
 
 media.rs's join command was run with the minimal build and with a full one, and every
@@ -56,7 +73,10 @@ with H.264 / HEVC / AAC / AC-3 / E-AC-3 / MP3 to MP4, fragmented MP4 and DASH to
 M4A); every MP4 output byte-identical to the full build's; WebM / MKV differ only in
 Matroska's random ids (identical with `-fflags +bitexact`). The build of 2026-10-08 passes
 15 of these 18: the three VP9-to-MP4 cases were not among its checks. The macOS arm64 build
-has not been run on a Mac yet.
+made on a Mac (2026-10-13) passes the project's own tests (`cargo test`: joins and repacks
+compared packet for packet with a full ffmpeg's reading) and joined YouTube's WebM pair and
+its VP9 HLS pieces into files that play; the 18 cases here and the 52 pairs below were not
+run with it. The macOS builds made with zig have not been run on a Mac.
 
 ## What needs a decoder
 

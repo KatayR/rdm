@@ -20,5 +20,8 @@ tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "sync", "
 [target."cfg(windows)".dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-core-foundation = { version = "0.3.2", default-features = false, features = ["std", "CFDate", "CFString", "CFURL", "CFUserNotification"] }
+
 [build-dependencies]
 tauri-build = { version = "2.7.1", features = [] }

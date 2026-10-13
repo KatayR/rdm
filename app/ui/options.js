@@ -45,6 +45,7 @@ async function load() {
 
   el("checkupdates").checked = settings.check_for_updates;
   el("version").textContent = await invoke("app_version");
+  if (isMac) el("licenses").textContent = 'the folder "Contents/Resources/licenses" inside the app (Show Package Contents)';
 }
 
 // About's button: asks the release page now; a newer version gets its own window.

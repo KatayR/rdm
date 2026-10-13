@@ -169,7 +169,8 @@ function renderRows() {
       cell(d.description || ""),
     );
     tr.addEventListener("click", (e) => {
-      if (!e.ctrlKey) selected.clear();
+      // Ctrl adds to the selection; on a Mac, where Ctrl+click is the right click, Cmd does.
+      if (!(isMac ? e.metaKey : e.ctrlKey)) selected.clear();
       if (selected.has(d.id)) selected.delete(d.id);
       else selected.add(d.id);
       renderRows();
@@ -299,8 +300,9 @@ el("delete").addEventListener("click", () => {
   if (ids.length > 0) act(() => invoke("open_delete", { ids }));
 });
 document.addEventListener("keydown", (e) => {
-  // Not while the key is held: every repeat would ask again.
-  if (e.key === "Delete" && !e.repeat && document.activeElement?.tagName !== "INPUT") el("delete").click();
+  // Not while the key is held: every repeat would ask again. A Mac's delete key is Backspace.
+  const deletes = e.key === "Delete" || (isMac && e.key === "Backspace");
+  if (deletes && !e.repeat && document.activeElement?.tagName !== "INPUT") el("delete").click();
   if (e.key === "Escape") hideRowMenu();
 });
 
