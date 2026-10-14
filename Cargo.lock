@@ -1642,7 +1642,7 @@ checksum = "66b7e2430c6dff6a955451e2cfc438f09cea1965a9d6f87f7e3b90decc014099"
 
 [[package]]
 name = "engine"
-version = "0.3.0"
+version = "0.3.2"
 dependencies = [
  "aes",
  "base64 0.23.1",
@@ -3095,7 +3095,7 @@ checksum = "4050469837a6ff301cd14c1f8f24f88549e6d548f24f64e2148eb0f72cebc51f"
 
 [[package]]
 name = "manager"
-version = "0.3.0"
+version = "0.3.2"
 dependencies = [
  "chrono",
  "dirs",
@@ -4257,7 +4257,7 @@ checksum = "20675572f6f24e9e76ef639bc5552774ed45f1c30e2951e1e99c59888861c539"
 
 [[package]]
 name = "rdm"
-version = "0.3.0"
+version = "0.3.2"
 dependencies = [
  "base64 0.23.1",
  "clap",
@@ -4276,7 +4276,7 @@ dependencies = [
 
 [[package]]
 name = "rdm-app"
-version = "0.3.0"
+version = "0.3.2"
 dependencies = [
  "engine",
  "manager",
@@ -5792,7 +5792,7 @@ dependencies = [
 
 [[package]]
 name = "testserver"
-version = "0.3.0"
+version = "0.3.2"
 dependencies = [
  "aes",
  "axum",

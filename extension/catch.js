@@ -214,14 +214,13 @@ async function keep(tabId, items) {
     size -= oldest.text.length;
     items = withoutText(items, oldest);
   }
-  await showCount(tabId, items);
 }
 
 // `items` without `entry`'s text. A playlist the page built is nothing without its text
 // and goes altogether; one with an address stays to be asked by it.
 function withoutText(items, entry) {
   if (/^blob:/i.test(entry.url)) return items.filter((i) => i !== entry);
-  return items.map((i) => (i === entry ? { ...i, text: null, parts: undefined } : i));
+  return items.map((i) => (i === entry ? { ...i, text: null } : i));
 }
 
 // True when `url` is the third (or later) numbered sibling of earlier media files in the
@@ -288,7 +287,7 @@ async function addCaught(tabId, item) {
   const { turned } = await pageIn(tabId);
   const newText = !!item.text && item.text !== known.text;
   if (!newText && known.at >= turned) return;
-  if (newText) Object.assign(known, { text: item.text, parts: item.parts, kind: item.kind });
+  if (newText) Object.assign(known, { text: item.text, kind: item.kind });
   known.at = Date.now();
   await keep(tabId, items);
 }
@@ -298,24 +297,6 @@ async function addCaught(tabId, item) {
 function sameFile(a, b) {
   const name = (url) => pathOf(url).split("/").pop();
   return a.kind === "file" && b.kind === "file" && !!a.size && a.size === b.size && name(a.url) === name(b.url);
-}
-
-// The addresses a master playlist names (its qualities and audio tracks), which are not
-// counted on their own; nothing for another playlist. The program sorts the list out for
-// good; this is only for the number on the toolbar button.
-function partsOf(text, base) {
-  if (!text.includes("#EXT-X-STREAM-INF")) return undefined;
-  const parts = [];
-  for (const line of text.split(/\r?\n/).map((l) => l.trim())) {
-    const named = line.startsWith("#") ? /URI="([^"]+)"/.exec(line)?.[1] : line;
-    if (!named) continue;
-    try {
-      parts.push(new URL(named, base).href);
-    } catch {
-      // An address that does not read names nothing.
-    }
-  }
-  return parts;
 }
 
 // A playlist sniff.js recognised by its content in a frame of the tab (`frame`: that
@@ -339,7 +320,6 @@ function noteSniffed(tabId, found, frame) {
       type: null,
       size: null,
       text,
-      parts: text ? partsOf(text, found.url) : undefined,
       referer: sent ? sent.referer || null : frame.url || null,
       origin: sent ? sent.origin || null : built || crossOrigin(found.url, origin) ? origin : null,
       frameId: frame.frameId,
@@ -362,7 +342,6 @@ async function forgetTab(tabId, url = null) {
   frameUrls.delete(tabId);
   await chrome.storage.session.remove([caughtKey(tabId), pageKey(tabId)]);
   if (url) await chrome.storage.session.set({ [pageKey(tabId)]: { url: withoutFragment(url), turned: 0 } });
-  await showCount(tabId, []);
 }
 
 // The tab's address changed. Without a page load (a single-page site moved on to another
@@ -375,7 +354,6 @@ async function noteAddress(tabId, url) {
   const turned = page.url ? Date.now() - TURN_GRACE_MS : page.turned;
   await chrome.storage.session.set({ [pageKey(tabId)]: { url: now, turned } });
   frameUrls.get(tabId)?.set(0, now);
-  if (page.url) await showCount(tabId, await caughtIn(tabId));
 }
 
 // `items` with `earlier` set on what was caught before the tab's site last moved on. When
@@ -383,21 +361,6 @@ async function noteAddress(tabId, url) {
 function withEarlier(items, turned) {
   const all = items.every((i) => i.at < turned);
   return items.map((i) => ({ ...i, earlier: !all && i.at < turned }));
-}
-
-// How many things the tab has to offer, on the toolbar button: what is not earlier and not
-// a part of a caught master playlist. Nothing while capture is off, or for a closed tab.
-async function showCount(tabId, items) {
-  const { turned } = await pageIn(tabId);
-  const parts = new Set(items.flatMap((i) => i.parts || []));
-  const count = withEarlier(items, turned).filter((i) => !i.earlier && !parts.has(i.url)).length;
-  const text = count && (await captureOn()) ? String(count) : null;
-  try {
-    // No text of its own: the tab shows the button's general one ("off", or nothing).
-    await chrome.action.setBadgeText({ tabId, text });
-  } catch {
-    // The tab is gone.
-  }
 }
 
 chrome.webRequest.onSendHeaders.addListener(
@@ -440,9 +403,6 @@ for (const event of [chrome.webRequest.onCompleted, chrome.webRequest.onErrorOcc
 
 chrome.tabs.onUpdated.addListener((tabId, change) => {
   if (change.url) serially(() => noteAddress(tabId, change.url));
-  // The browser drops a tab's own number when a page loads; what was caught while it
-  // loaded (a video opened directly in the tab) is shown again.
-  if (change.status === "complete") serially(async () => showCount(tabId, await caughtIn(tabId)));
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => serially(() => forgetTab(tabId)));

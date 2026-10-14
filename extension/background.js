@@ -98,24 +98,18 @@ async function send(url, referrer, fileName, fromLink = false) {
   return reply.id;
 }
 
-// The button's general state; a tab that caught something shows its count instead
-// (catch.js), and only while capture is on.
+// The button's state: "off" while capture is off, else nothing.
 async function showState(on) {
   await chrome.action.setBadgeText({ text: on ? "" : "off" });
   await chrome.action.setTitle({
-    title: on
-      ? "RDM: capturing downloads (click to turn off). A number: videos caught in this tab"
-      : "RDM: capture is off (click to turn on)",
+    title: on ? "RDM: capturing downloads (click to turn off)" : "RDM: capture is off (click to turn on)",
   });
-  for (const tab of await chrome.tabs.query({})) await showCount(tab.id, await caughtIn(tab.id));
 }
 
-// Shown for a while, also on the tab in front, whose count would hide it.
+// Shown for a while.
 async function showError(message) {
   console.warn("RDM:", message);
-  const [front] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   await chrome.action.setBadgeText({ text: "!" });
-  if (front) await chrome.action.setBadgeText({ tabId: front.id, text: "!" }).catch(() => {});
   await chrome.action.setTitle({ title: "RDM: " + message });
   setTimeout(async () => showState(await captureOn()), 10000);
 }

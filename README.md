@@ -9,8 +9,8 @@ Manager. RDM is written from scratch and is not affiliated with Tonec; it contai
 Internet Download Manager's code, icons or images. "Internet Download Manager" and "IDM" are
 names of Tonec's product.
 
-Status: version 0.3.0, the first under the name RDM and the first with a setup exe and its
-own update. The setup, and the Mac's disk image (for Apple silicon), are on the
+Status: version 0.3.2 (0.3.0 was the first under the name RDM and the first with a setup exe
+and its own update). The setup, and the Mac's disk image (for Apple silicon), are on the
 [releases page](https://github.com/KatayR/rdm/releases/latest); what they do is under
 [The setup exe and updates](#the-setup-exe-and-updates) and [On a Mac](#on-a-mac).
 
@@ -77,7 +77,8 @@ own update. The setup, and the Mac's disk image (for Apple silicon), are on the
   right-click menu.
 - A "Download this video" button over videos on any site: under the pointer, and without it
   while a video plays with sound (✕ hides it for that video).
-- The toolbar button shows how many videos the tab has caught.
+- The toolbar button shows nothing while capture is on and "off" while it is off; "!" for ten
+  seconds when something could not be handed to RDM (its title then says why).
 - Works in Brave and Chrome (Manifest V3).
 
 **Video** (`manager`, using yt-dlp, Deno and ffmpeg)
@@ -196,7 +197,7 @@ own update. The setup, and the Mac's disk image (for Apple silicon), are on the
 | `background.js` | Taking browser downloads, the right-click menus, the toolbar switch, talking to the host. |
 | `content.js` | Clicks on links that look like files; Alt+click. |
 | `types.js` | The default list of file types for link clicks. |
-| `catch.js` | Notes the HLS, DASH and media files each tab requests; the count on the toolbar button. |
+| `catch.js` | Notes the HLS, DASH and media files each tab requests. |
 | `rules.json` | What counts as media: types, extensions, skipped hosts, size floors. |
 | `sniff.js` | Runs in the page: spots playlists in its fetch and XHR replies and in the Blobs it hands its player, and reads their text. On YouTube: the format list the player was given. |
 | `video.js` | The "Download this video" button; listing YouTube qualities ahead. |
@@ -714,7 +715,7 @@ cargo test --workspace
   live recording, no subtitles, and cookies are not sent to piece or key hosts other than the
   playlist's (streams behind signed CDN cookies fail). Playlists read inside a Web Worker are
   only seen by their address. A DASH manifest with several periods is left to yt-dlp. An
-  `<audio>` element gets no button (the toolbar count and the right-click menu cover it).
+  `<audio>` element gets no button (the right-click menu covers it).
 - Download File Info shows nothing while a long move runs.
 - While `rdm daemon` serves the data folder, the app does not start (it finds the socket
   taken and exits).
