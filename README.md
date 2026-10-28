@@ -119,6 +119,11 @@ and its own update). The setup, and the Mac's disk image (for Apple silicon), ar
 | `testserver/` | A local HTTP server for tests: throttled, cut or refused connections, HLS playlists, and so on. |
 | `ffmpeg/` | Scripts for a minimal 4.2 MB ffmpeg (stream copy only), with its own [README](ffmpeg/README.md). |
 
+The plans and lessons of the work on RDM are kept in a private repository,
+[KatayR/rdm-notes](https://github.com/KatayR/rdm-notes), cloned into `notes/` inside this
+one. On a new computer, add `/notes` to `.git/info/exclude` before the first commit here;
+that repository's README has the steps.
+
 ### engine
 
 | File | What it holds |
