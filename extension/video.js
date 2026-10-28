@@ -309,9 +309,13 @@
   }
 
   // A video inside a player's open shadow root (web-component players), found through the
-  // elements at the point, level by level.
+  // elements at the point, level by level. A shadow root's elementsFromPoint also lists
+  // everything outside it, which the outer levels have looked at already; going into those
+  // again grew the work exponentially (on a page built of web components, some 1,700 calls
+  // and half a second for one move of the pointer).
   function shadowVideoAt(x, y, root, depth = 0) {
     for (const el of root.elementsFromPoint(x, y)) {
+      if (el.getRootNode() !== root) continue;
       if (el instanceof HTMLVideoElement) return el;
       if (el.shadowRoot && depth < 4) {
         const inner = shadowVideoAt(x, y, el.shadowRoot, depth + 1);

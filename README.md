@@ -9,7 +9,7 @@ Manager. RDM is written from scratch and is not affiliated with Tonec; it contai
 Internet Download Manager's code, icons or images. "Internet Download Manager" and "IDM" are
 names of Tonec's product.
 
-Status: version 0.3.2 (0.3.0 was the first under the name RDM and the first with a setup exe
+Status: version 0.3.3 (0.3.0 was the first under the name RDM and the first with a setup exe
 and its own update). The setup, and the Mac's disk image (for Apple silicon), are on the
 [releases page](https://github.com/KatayR/rdm/releases/latest); what they do is under
 [The setup exe and updates](#the-setup-exe-and-updates) and [On a Mac](#on-a-mac).
